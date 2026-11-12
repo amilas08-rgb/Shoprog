@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="fr" dir="ltr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#2563eb">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Commerce">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>Gestion Commerce | إدارة المحل</title>
+<style>
+/* ================= STYLES (→ styles.css) ================= */
+:root{--bg:#f3f5f9;--card:#fff;--tx:#1f2937;--mut:#6b7280;--bd:#e5e7eb;--pri:#2563eb;--ok:#16a34a;--warn:#d97706;--bad:#dc2626;--side:#0f172a}
+@media(prefers-color-scheme:dark){:root{--bg:#0b1220;--card:#162033;--tx:#e5e7eb;--mut:#94a3b8;--bd:#263249}}
+*{box-sizing:border-box}
+body{margin:0;font:16px/1.5 system-ui,"Segoe UI",Tahoma,sans-serif;background:var(--bg);color:var(--tx)}
+button,input,select{font:inherit;color:inherit}
+.hidden{display:none!important}
+.layout{display:flex;min-height:100vh}
+.side{width:230px;background:var(--side);color:#cbd5e1;padding:14px 10px;display:flex;flex-direction:column;gap:4px;position:sticky;top:0;height:100vh;overflow:auto}
+.side h2{color:#fff;font-size:18px;margin:4px 8px 14px}
+.nav{display:flex;gap:10px;align-items:center;padding:10px 12px;border-radius:10px;cursor:pointer;border:0;background:none;color:inherit;text-align:start;width:100%}
+.nav:hover{background:#1e293b}.nav.on{background:var(--pri);color:#fff}
+.main{flex:1;min-width:0}
+.top{display:flex;gap:10px;align-items:center;padding:12px 18px;background:var(--card);border-bottom:1px solid var(--bd);position:sticky;top:0;z-index:5}
+.top .sp{flex:1}.menu{display:none}
+.page{padding:18px;max-width:1200px;margin:auto}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;margin-bottom:18px}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:14px;padding:16px}
+.kpi small{color:var(--mut);display:block}.kpi b{font-size:24px}
+.btn{border:0;border-radius:10px;padding:9px 14px;background:var(--pri);color:#fff;cursor:pointer;font-weight:600}
+.btn.sec{background:var(--bd);color:var(--tx)}.btn.bad{background:var(--bad)}.btn.sm{padding:4px 9px;font-size:13px}
+.bar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:14px}
+.bar h1{margin:0;font-size:22px;flex:1}
+input,select{padding:9px 11px;border:1px solid var(--bd);border-radius:10px;background:var(--card);width:100%}
+.bar input,.bar select{width:auto}
+.tw{overflow-x:auto}
+table{width:100%;border-collapse:collapse;background:var(--card);border-radius:12px;overflow:hidden}
+th,td{padding:10px 12px;text-align:start;border-bottom:1px solid var(--bd);white-space:nowrap}
+th{background:var(--bg);color:var(--mut);font-size:13px}
+.badge{padding:2px 10px;border-radius:99px;font-size:13px;font-weight:600;color:#fff}
+.b-ok{background:var(--ok)}.b-warn{background:var(--warn)}.b-bad{background:var(--bad)}
+.t-ok{color:var(--ok);font-weight:700}.t-bad{color:var(--bad);font-weight:700}.t-warn{color:var(--warn);font-weight:700}
+.modal{position:fixed;inset:0;background:#0008;display:flex;align-items:center;justify-content:center;padding:14px;z-index:20}
+.box{background:var(--card);border-radius:16px;padding:20px;width:100%;max-width:560px;max-height:92vh;overflow:auto}
+.box label{display:block;margin:10px 0 4px;color:var(--mut);font-size:14px}
+.row{display:flex;gap:8px;align-items:center;margin-top:8px}
+.login{min-height:100vh;display:grid;place-items:center;padding:14px}
+.login .card{width:100%;max-width:380px}
+pre{background:var(--bg);padding:10px;border-radius:10px;overflow:auto;font-size:12px;direction:ltr;text-align:left}
+@media(max-width:800px){
+ .side{position:fixed;inset-block:0;inset-inline-start:0;z-index:15;transform:translateX(-105%);transition:.2s}
+ [dir=rtl] .side{transform:translateX(105%)}
+ .side.open{transform:none}.menu{display:inline-block}
+}
+@media print{.side,.top,.bar .btn,.noprint{display:none!important}}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+/* ================= I18N (→ i18n.js) ================= */
+const I18N = {
+  fr:{app:'Gestion Commerce',login:'Connexion',user:'Utilisateur',pass:'Mot de passe',enter:'Se connecter',bad:'Identifiants incorrects',logout:'Déconnexion',
+    dashboard:'Tableau de bord',clients:'Clients',suppliers:'Fournisseurs',products:'Produits',sales:'Ventes',purchases:'Achats',expenses:'Dépenses',cash:'Caisse',reports:'Rapports',settings:'Paramètres',
+    add:'Ajouter',edit:'Modifier',del:'Supprimer',save:'Enregistrer',cancel:'Annuler',search:'Rechercher…',sure:'Confirmer la suppression ?',actions:'Actions',
+    name:'Nom',phone:'Téléphone',address:'Adresse',category:'Catégorie',buyPrice:"Prix d'achat",sellPrice:'Prix de vente',stock:'Stock',minStock:'Stock min.',date:'Date',label:'Libellé',amount:'Montant',
+    total:'Total',paid:'Payé',rest:'Reste',status:'Statut',st_paid:'Payée',st_part:'Partielle',st_unpaid:'Impayée',party:'Tiers',qty:'Qté',price:'Prix',product:'Produit',addLine:'+ Ligne',pay:'Paiement',
+    debts:'Créances clients',dues:'Dettes fournisseurs',balance:'Solde caisse',salesToday:'Ventes du jour',lowStock:'Stock bas',bestSeller:'Meilleure vente',bestBuy:'Meilleur prix achat',sold:'Vendus',
+    in:'Entrée',out:'Sortie',type:'Type',day:'Jour',month:'Mois',year:'Année',net:'Résultat net',print:'Imprimer',recent:'Dernières factures',
+    shop:'Nom du commerce',currency:'Devise',sheetUrl:'URL Google Apps Script',sync:'Synchroniser',load:'Charger depuis Sheets',export:'Exporter JSON',import:'Importer JSON',reset:'Réinitialiser',users:'Utilisateurs',role:'Rôle',
+    admin:'Directeur',sales_r:'Resp. ventes',stock_r:'Resp. stock',accountant:'Comptable',synced:'Synchronisé',local:'Local',err:'Erreur',lang:'Langue',script:'Code Apps Script (à coller dans Google Sheets)',none:'Aucune donnée',fullpay:'Solder',install:'Installer'},
+  ar:{app:'إدارة المحل',login:'تسجيل الدخول',user:'المستخدم',pass:'كلمة المرور',enter:'دخول',bad:'بيانات غير صحيحة',logout:'خروج',
+    dashboard:'لوحة التحكم',clients:'العملاء',suppliers:'الموردون',products:'المنتجات',sales:'المبيعات',purchases:'المشتريات',expenses:'المصاريف',cash:'الصندوق',reports:'التقارير',settings:'الإعدادات',
+    add:'إضافة',edit:'تعديل',del:'حذف',save:'حفظ',cancel:'إلغاء',search:'بحث…',sure:'تأكيد الحذف؟',actions:'إجراءات',
+    name:'الاسم',phone:'الهاتف',address:'العنوان',category:'الصنف',buyPrice:'سعر الشراء',sellPrice:'سعر البيع',stock:'المخزون',minStock:'الحد الأدنى',date:'التاريخ',label:'البيان',amount:'المبلغ',
+    total:'المجموع',paid:'المدفوع',rest:'الباقي',status:'الحالة',st_paid:'مدفوعة',st_part:'جزئية',st_unpaid:'غير مدفوعة',party:'الطرف',qty:'الكمية',price:'السعر',product:'المنتج',addLine:'+ سطر',pay:'دفعة',
+    debts:'ديون العملاء',dues:'مستحقات الموردين',balance:'رصيد الصندوق',salesToday:'مبيعات اليوم',lowStock:'مخزون منخفض',bestSeller:'الأكثر مبيعًا',bestBuy:'أفضل سعر شراء',sold:'المباع',
+    in:'دخول',out:'خروج',type:'النوع',day:'يومي',month:'شهري',year:'سنوي',net:'الربح الصافي',print:'طباعة',recent:'آخر الفواتير',
+    shop:'اسم المحل',currency:'العملة',sheetUrl:'رابط Google Apps Script',sync:'مزامنة',load:'تحميل من Sheets',export:'تصدير JSON',import:'استيراد JSON',reset:'إعادة ضبط',users:'المستخدمون',role:'الدور',
+    admin:'المدير',sales_r:'مسؤول المبيعات',stock_r:'مسؤول المخزون',accountant:'المحاسب',synced:'تمت المزامنة',local:'محلي',err:'خطأ',lang:'اللغة',script:'كود Apps Script (الصقه في Google Sheets)',none:'لا توجد بيانات',fullpay:'تسديد',install:'تثبيت'}
+};
+
+/* ================= CONFIG / PERMISSIONS (→ config.js) ================= */
+const ICONS={dashboard:'📊',clients:'👥',suppliers:'🚚',products:'📦',sales:'🧾',purchases:'🛒',expenses:'💸',cash:'💰',reports:'📈',settings:'⚙️'};
+const ROLE_PAGES={
+  admin:['dashboard','sales','purchases','clients','suppliers','products','expenses','cash','reports','settings'],
+  sales_r:['dashboard','sales','clients','products'],
+  stock_r:['dashboard','products','purchases','suppliers'],
+  accountant:['dashboard','sales','purchases','expenses','cash','reports']
+};
+const TABLES=['users','clients','suppliers','products','invoices','expenses','cash'];
+
+/* ================= HELPERS (→ utils.js) ================= */
+const $=(s,r=document)=>r.querySelector(s);
+const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+const today=()=>new Date().toISOString().slice(0,10);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const num=v=>+v||0;
+const hash=s=>{let h=5381;for(const c of s)h=((h<<5)+h+c.charCodeAt(0))|0;return String(h)}; // demo only: replace with a real hash on a backend
+
+/* ================= STATE + STORAGE (→ store.js) ================= */
+const cfg=JSON.parse(localStorage.getItem('cfg')||'{"lang":"fr","shop":"","currency":"DA","sheetUrl":""}');
+const S={db:null,user:null,page:'dashboard',sync:'local',q:''};
+const t=k=>I18N[cfg.lang][k]??k;
+const money=n=>num(n).toLocaleString('fr-FR',{minimumFractionDigits:2,maximumFractionDigits:2})+' '+(cfg.currency||'');
+const saveCfg=()=>localStorage.setItem('cfg',JSON.stringify(cfg));
+
+function seedDb(){
+  const db=Object.fromEntries(TABLES.map(x=>[x,[]]));
+  db.users=[{id:uid(),name:'admin',pass:hash('admin'),role:'admin'},{id:uid(),name:'ventes',pass:hash('1234'),role:'sales_r'},
+            {id:uid(),name:'stock',pass:hash('1234'),role:'stock_r'},{id:uid(),name:'compta',pass:hash('1234'),role:'accountant'}];
+  return db;
+}
+const Repo={
+  all:tb=>S.db[tb],
+  get:(tb,id)=>S.db[tb].find(x=>x.id===id),
+  save(tb,item){const l=S.db[tb],i=l.findIndex(x=>x.id===item.id);if(i<0)l.push(item);else l[i]=item;persist()},
+  remove(tb,id){S.db[tb]=S.db[tb].filter(x=>x.id!==id);persist()}
+};
+/* Sheets adapter: one sheet per table, columns [id, json] (see Apps Script in Settings) */
+const Sheets={
+  async pull(){const r=await fetch(cfg.sheetUrl);return r.json()},
+  async push(db){await fetch(cfg.sheetUrl,{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify(db)})}
+};
+let syncTimer;
+function persist(){
+  localStorage.setItem('db',JSON.stringify(S.db));
+  if(!cfg.sheetUrl)return;
+  clearTimeout(syncTimer);
+  syncTimer=setTimeout(async()=>{
+    try{await Sheets.push(S.db);S.sync='synced'}catch(e){S.sync='err'}
+    const el=$('#syncState');if(el)el.textContent=t(S.sync==='synced'?'synced':'err');
+  },1200);
+}
+async function loadDb(){
+  S.db=JSON.parse(localStorage.getItem('db')||'null')||seedDb();
+  if(cfg.sheetUrl){try{const r=await Sheets.pull();if(r.users&&r.users.length){TABLES.forEach(x=>S.db[x]=r[x]||[]);S.sync='synced'}}catch(e){S.sync='err'}}
+}
+
+/* ================= BUSINESS LOGIC (→ services.js) ================= */
+const invTotal=i=>i.lines.reduce((s,l)=>s+num(l.qty)*num(l.price),0);
+const invPaid=i=>i.payments.reduce((s,p)=>s+num(p.amount),0);
+const invRest=i=>invTotal(i)-invPaid(i);
+function invStatus(i){const r=invRest(i);if(r<=0.001)return['st_paid','ok'];return invPaid(i)>0?['st_part','warn']:['st_unpaid','bad']}
+const badge=(txt,c)=>`<span class="badge b-${c}">${esc(txt)}</span>`;
+const invoices=type=>S.db.invoices.filter(i=>i.type===type);
+const partyName=i=>(Repo.get(i.type==='sale'?'clients':'suppliers',i.partyId)||{}).name||'—';
+const sumRest=type=>invoices(type).reduce((s,i)=>s+invRest(i),0);
+
+function applyStock(inv,sign){ // sale: -qty, purchase: +qty ; sign=-1 reverses
+  inv.lines.forEach(l=>{const p=Repo.get('products',l.productId);if(!p)return;
+    p.stock=num(p.stock)+(inv.type==='sale'?-1:1)*sign*num(l.qty)});
+}
+function cashMovements(){
+  const m=[];
+  S.db.invoices.forEach(i=>i.payments.forEach(p=>m.push({date:p.date,type:i.type==='sale'?'in':'out',label:`${t(i.type==='sale'?'sales':'purchases')} · ${partyName(i)}`,amount:num(p.amount)})));
+  S.db.expenses.forEach(e=>m.push({date:e.date,type:'out',label:`${t('expenses')} · ${e.label}`,amount:num(e.amount)}));
+  S.db.cash.forEach(c=>m.push({date:c.date,type:c.type,label:c.label,amount:num(c.amount)}));
+  return m.sort((a,b)=>b.date.localeCompare(a.date));
+}
+const cashBalance=()=>cashMovements().reduce((s,m)=>s+(m.type==='in'?m.amount:-m.amount),0);
+function productStats(){ // sold qty + best purchase price per product
+  const st={};S.db.products.forEach(p=>st[p.id]={sold:0,best:null,bestSupplier:''});
+  S.db.invoices.forEach(i=>i.lines.forEach(l=>{const s=st[l.productId];if(!s)return;
+    if(i.type==='sale')s.sold+=num(l.qty);
+    else if(s.best===null||num(l.price)<s.best){s.best=num(l.price);s.bestSupplier=partyName(i)}}));
+  return st;
+}
+function periodReport(mode,value){
+  const n={day:10,month:7,year:4}[mode],ok=d=>(d||'').slice(0,n)===value.slice(0,n);
+  const sales=invoices('sale').filter(i=>ok(i.date)),buys=invoices('purchase').filter(i=>ok(i.date));
+  const exp=S.db.expenses.filter(e=>ok(e.date));
+  const r={sales:sales.reduce((s,i)=>s+invTotal(i),0),purchases:buys.reduce((s,i)=>s+invTotal(i),0),expenses:exp.reduce((s,e)=>s+num(e.amount),0),count:sales.length};
+  r.net=r.sales-r.purchases-r.expenses;
+  const mv=cashMovements().filter(m=>ok(m.date));
+  r.cashIn=mv.filter(m=>m.type==='in').reduce((s,m)=>s+m.amount,0);r.cashOut=mv.filter(m=>m.type==='out').reduce((s,m)=>s+m.amount,0);
+  const top={};sales.forEach(i=>i.lines.forEach(l=>top[l.productId]=(top[l.productId]||0)+num(l.qty)));
+  r.top=Object.entries(top).sort((a,b)=>b[1]-a[1]).slice(0,5);
+  return r;
+}
+
+/* ================= UI PRIMITIVES (→ ui.js) ================= */
+function modal(html,onMount){
+  const m=document.createElement('div');m.className='modal';m.innerHTML=`<div class="box">${html}</div>`;
+  m.addEventListener('mousedown',e=>{if(e.target===m)m.remove()});
+  document.body.appendChild(m);onMount&&onMount(m);return m;
+}
+function formModal(title,fields,values,onSave){
+  const inputs=fields.map(f=>{
+    const v=values[f.k]??f.def??'',id='f_'+f.k;
+    const el=f.type==='select'?`<select id="${id}">${f.options().map(([a,b])=>`<option value="${esc(a)}" ${a==v?'selected':''}>${esc(b)}</option>`).join('')}</select>`
+      :`<input id="${id}" type="${f.type||'text'}" step="any" value="${esc(v)}">`;
+    return `<label>${t(f.label||f.k)}</label>${el}`;
+  }).join('');
+  const m=modal(`<h3>${title}</h3>${inputs}<div class="row"><button class="btn" id="ok">${t('save')}</button><button class="btn sec" id="no">${t('cancel')}</button></div>`);
+  $('#no',m).onclick=()=>m.remove();
+  $('#ok',m).onclick=()=>{
+    const out={...values};
+    for(const f of fields){const v=$('#f_'+f.k,m).value.trim();if(f.req&&!v)return $('#f_'+f.k,m).focus();out[f.k]=f.type==='number'?num(v):v}
+    onSave(out);m.remove();render();
+  };
+}
+const tableHtml=(cols,rows)=>rows.length?`<div class="tw"><table><thead><tr>${cols.map(c=>`<th>${t(c.h)}</th>`).join('')}</tr></thead><tbody>${
+  rows.map(r=>`<tr>${cols.map(c=>`<td>${c.f(r)}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`:`<div class="card">${t('none')}</div>`;
+const matches=o=>!S.q||JSON.stringify(o).toLowerCase().includes(S.q.toLowerCase());
+const header=(title,addBtn)=>`<div class="bar"><h1>${ICONS[title]||''} ${t(title)}</h1><input id="q" placeholder="${t('search')}" value="${esc(S.q)}">${addBtn||''}</div>`;
+const rowBtns=(tb,id,extra='')=>`${extra}<button class="btn sm sec" data-edit="${tb}:${id}">✏️</button> <button class="btn sm bad" data-del="${tb}:${id}">🗑️</button>`;
+
+/* ================= PAGES (→ pages/*.js) ================= */
+const ENTITIES={
+  clients:{fields:[{k:'name',req:1},{k:'phone'},{k:'address'}]},
+  suppliers:{fields:[{k:'name',req:1},{k:'phone'},{k:'address'}]},
+  products:{fields:[{k:'name',req:1},{k:'category'},{k:'buyPrice',type:'number'},{k:'sellPrice',type:'number'},{k:'stock',type:'number'},{k:'minStock',type:'number'}]},
+  expenses:{fields:[{k:'date',type:'date',def:today()},{k:'label',req:1},{k:'category'},{k:'amount',type:'number',req:1}]}
+};
+const Pages={
+  dashboard(){
+    const ps=productStats(),low=S.db.products.filter(p=>num(p.stock)<=num(p.minStock));
+    const best=S.db.products.slice().sort((a,b)=>ps[b.id].sold-ps[a.id].sold)[0];
+    const td=periodReport('day',today()),rec=S.db.invoices.slice().sort((a,b)=>b.date.localeCompare(a.date)).slice(0,6);
+    const k=(l,v,c='')=>`<div class="card kpi"><small>${t(l)}</small><b class="${c}">${v}</b></div>`;
+    return `<div class="bar"><h1>${ICONS.dashboard} ${t('dashboard')}</h1></div><div class="grid">
+      ${k('salesToday',money(td.sales),'t-ok')}${k('debts',money(sumRest('sale')),'t-bad')}${k('dues',money(sumRest('purchase')),'t-warn')}
+      ${k('balance',money(cashBalance()),cashBalance()>=0?'t-ok':'t-bad')}${k('lowStock',low.length,low.length?'t-bad':'')}
+      ${k('bestSeller',best&&ps[best.id].sold?esc(best.name):'—')}</div>
+      <h3>${t('recent')}</h3>${invoiceTable(rec,false)}`;
+  },
+  clients(){return crudPage('clients',[{h:'name',f:r=>esc(r.name)},{h:'phone',f:r=>esc(r.phone)},{h:'address',f:r=>esc(r.address)},
+    {h:'rest',f:r=>{const d=invoices('sale').filter(i=>i.partyId===r.id).reduce((s,i)=>s+invRest(i),0);return `<span class="${d>0?'t-bad':'t-ok'}">${money(d)}</span>`}}])},
+  suppliers(){return crudPage('suppliers',[{h:'name',f:r=>esc(r.name)},{h:'phone',f:r=>esc(r.phone)},{h:'address',f:r=>esc(r.address)},
+    {h:'rest',f:r=>{const d=invoices('purchase').filter(i=>i.partyId===r.id).reduce((s,i)=>s+invRest(i),0);return `<span class="${d>0?'t-warn':'t-ok'}">${money(d)}</span>`}}])},
+  products(){const ps=productStats();return crudPage('products',[{h:'name',f:r=>esc(r.name)},{h:'category',f:r=>esc(r.category)},
+    {h:'buyPrice',f:r=>money(r.buyPrice)},{h:'sellPrice',f:r=>money(r.sellPrice)},
+    {h:'stock',f:r=>`<span class="${num(r.stock)<=num(r.minStock)?'t-bad':'t-ok'}">${num(r.stock)}</span>`},
+    {h:'sold',f:r=>ps[r.id].sold},
+    {h:'bestBuy',f:r=>ps[r.id].best===null?'—':`<span class="t-ok">${money(ps[r.id].best)}</span> <small>${esc(ps[r.id].bestSupplier)}</small>`}])},
+  expenses(){return crudPage('expenses',[{h:'date',f:r=>r.date},{h:'label',f:r=>esc(r.label)},{h:'category',f:r=>esc(r.category)},{h:'amount',f:r=>`<span class="t-bad">${money(r.amount)}</span>`}])},
+  sales:()=>invoicePage('sale'),
+  purchases:()=>invoicePage('purchase'),
+  cash(){
+    const mv=cashMovements().filter(matches);
+    return `${header('cash',`<button class="btn" id="addCash">${t('add')}</button>`)}
+      <div class="grid"><div class="card kpi"><small>${t('balance')}</small><b class="${cashBalance()>=0?'t-ok':'t-bad'}">${money(cashBalance())}</b></div></div>
+      ${tableHtml([{h:'date',f:m=>m.date},{h:'label',f:m=>esc(m.label)},{h:'type',f:m=>badge(t(m.type),m.type==='in'?'ok':'bad')},
+        {h:'amount',f:m=>`<span class="${m.type==='in'?'t-ok':'t-bad'}">${m.type==='in'?'+':'−'}${money(m.amount)}</span>`}],mv)}`;
+  },
+  reports(){
+    const mode=S.rMode||'day',val=S.rVal||today(),r=periodReport(mode,val);
+    const k=(l,v,c='')=>`<div class="card kpi"><small>${t(l)}</small><b class="${c}">${v}</b></div>`;
+    return `<div class="bar"><h1>${ICONS.reports} ${t('reports')}</h1>
+      <select id="rMode">${['day','month','year'].map(m=>`<option value="${m}" ${m===mode?'selected':''}>${t(m)}</option>`).join('')}</select>
+      <input type="date" id="rVal" value="${val}"><button class="btn" onclick="print()">${t('print')}</button></div>
+      <div class="grid">${k('sales',money(r.sales),'t-ok')}${k('purchases',money(r.purchases),'t-warn')}${k('expenses',money(r.expenses),'t-bad')}
+      ${k('net',money(r.net),r.net>=0?'t-ok':'t-bad')}${k('in',money(r.cashIn),'t-ok')}${k('out',money(r.cashOut),'t-bad')}</div>
+      <h3>${t('bestSeller')}</h3>${tableHtml([{h:'product',f:x=>esc((Repo.get('products',x[0])||{}).name)},{h:'sold',f:x=>x[1]}],r.top)}`;
+  },
+  settings(){
+    return `<div class="bar"><h1>${ICONS.settings} ${t('settings')}</h1></div>
+    <div class="card"><label>${t('shop')}</label><input id="sShop" value="${esc(cfg.shop)}">
+      <label>${t('currency')}</label><input id="sCur" value="${esc(cfg.currency)}">
+      <label>${t('lang')}</label><select id="sLang"><option value="fr">Français</option><option value="ar" ${cfg.lang==='ar'?'selected':''}>العربية</option></select>
+      <label>${t('sheetUrl')}</label><input id="sUrl" value="${esc(cfg.sheetUrl)}" placeholder="https://script.google.com/macros/s/…/exec" dir="ltr">
+      <div class="row"><button class="btn" id="sSave">${t('save')}</button><button class="btn sec" id="sPush">${t('sync')}</button><button class="btn sec" id="sPull">${t('load')}</button>
+      <span id="syncState">${t(S.sync==='synced'?'synced':S.sync==='err'?'err':'local')}</span></div>
+      <div class="row"><button class="btn sec" id="sExp">${t('export')}</button><button class="btn sec" id="sImp">${t('import')}</button><button class="btn bad" id="sReset">${t('reset')}</button></div></div>
+    <h3>${t('users')}</h3><div class="bar"><span class="sp"></span><button class="btn" data-add="users">${t('add')}</button></div>
+    ${tableHtml([{h:'user',f:u=>esc(u.name)},{h:'role',f:u=>t(u.role)},{h:'actions',f:u=>rowBtns('users',u.id)}],S.db.users)}
+    <h3>${t('script')}</h3><pre>${esc(APPS_SCRIPT)}</pre>`;
+  }
+};
+const APPS_SCRIPT=`function doGet(){
+  const out={};
+  SpreadsheetApp.getActive().getSheets().forEach(s=>{
+    out[s.getName()]=s.getDataRange().getValues().slice(1).map(r=>JSON.parse(r[1]));
+  });
+  return ContentService.createTextOutput(JSON.stringify(out)).setMimeType(ContentService.MimeType.JSON);
+}
+function doPost(e){
+  const db=JSON.parse(e.postData.contents),ss=SpreadsheetApp.getActive();
+  for(const t in db){
+    const s=ss.getSheetByName(t)||ss.insertSheet(t);
+    s.clear();s.appendRow(['id','json']);
+    const rows=db[t].map(x=>[x.id,JSON.stringify(x)]);
+    if(rows.length)s.getRange(2,1,rows.length,2).setValues(rows);
+  }
+  return ContentService.createTextOutput('ok');
+}
+// Deploy > New deployment > Web app > Execute as: Me > Access: Anyone`;
+
+function crudPage(tb,cols){
+  const rows=S.db[tb].filter(matches);
+  return `${header(tb,`<button class="btn" data-add="${tb}">${t('add')}</button>`)}${tableHtml([...cols,{h:'actions',f:r=>rowBtns(tb,r.id)}],rows)}`;
+}
+function invoiceTable(rows,withActions=true){
+  return tableHtml([{h:'date',f:i=>i.date},{h:'party',f:i=>esc(partyName(i))},{h:'total',f:i=>money(invTotal(i))},
+    {h:'paid',f:i=>`<span class="t-ok">${money(invPaid(i))}</span>`},{h:'rest',f:i=>`<span class="${invRest(i)>0?'t-bad':'t-ok'}">${money(invRest(i))}</span>`},
+    {h:'status',f:i=>{const[s,c]=invStatus(i);return badge(t(s),c)}},
+    ...(withActions?[{h:'actions',f:i=>`${invRest(i)>0?`<button class="btn sm" data-pay="${i.id}">${t('pay')}</button> `:''}<button class="btn sm bad" data-delinv="${i.id}">🗑️</button>`}]:[])],rows);
+}
+function invoicePage(type){
+  const rows=invoices(type).filter(i=>matches({...i,p:partyName(i)})).sort((a,b)=>b.date.localeCompare(a.date));
+  return `${header(type==='sale'?'sales':'purchases',`<button class="btn" data-newinv="${type}">${t('add')}</button>`)}${invoiceTable(rows)}`;
+}
+
+/* ================= INVOICE + PAYMENT DIALOGS ================= */
+function openInvoice(type){
+  const parties=S.db[type==='sale'?'clients':'suppliers'],prods=S.db.products;
+  if(!prods.length)return alert(t('products')+' ?');
+  const line=()=>`<div class="row ln"><select class="lp">${prods.map(p=>`<option value="${p.id}">${esc(p.name)}</option>`).join('')}</select>
+    <input class="lq" type="number" value="1" min="0" step="any" style="width:80px"><input class="lpr" type="number" step="any" style="width:110px"></div>`;
+  const m=modal(`<h3>${t(type==='sale'?'sales':'purchases')}</h3>
+    <label>${t('party')}</label><select id="iParty">${parties.map(p=>`<option value="${p.id}">${esc(p.name)}</option>`).join('')}</select>
+    <label>${t('date')}</label><input type="date" id="iDate" value="${today()}"><div id="lines"></div>
+    <div class="row"><button class="btn sec sm" id="addLn">${t('addLine')}</button></div>
+    <label>${t('paid')}</label><input type="number" id="iPaid" value="0" step="any"><h3 id="iTot"></h3>
+    <div class="row"><button class="btn" id="ok">${t('save')}</button><button class="btn sec" id="no">${t('cancel')}</button></div>`);
+  const defPrice=ln=>{const p=Repo.get('products',$('.lp',ln).value);$('.lpr',ln).value=type==='sale'?p.sellPrice:p.buyPrice};
+  const total=()=>[...m.querySelectorAll('.ln')].reduce((s,l)=>s+num($('.lq',l).value)*num($('.lpr',l).value),0);
+  const refresh=()=>$('#iTot',m).textContent=`${t('total')}: ${money(total())}`;
+  const addLine=()=>{$('#lines',m).insertAdjacentHTML('beforeend',line());const ln=$('#lines',m).lastElementChild;defPrice(ln);
+    $('.lp',ln).onchange=()=>{defPrice(ln);refresh()};ln.oninput=refresh;refresh()};
+  addLine();$('#addLn',m).onclick=addLine;$('#no',m).onclick=()=>m.remove();
+  $('#ok',m).onclick=()=>{
+    const lines=[...m.querySelectorAll('.ln')].map(l=>({productId:$('.lp',l).value,qty:num($('.lq',l).value),price:num($('.lpr',l).value)})).filter(l=>l.qty>0);
+    if(!lines.length||!$('#iParty',m).value)return;
+    const paid=Math.min(num($('#iPaid',m).value),total());
+    const inv={id:uid(),type,partyId:$('#iParty',m).value,date:$('#iDate',m).value,lines,payments:paid>0?[{date:$('#iDate',m).value,amount:paid}]:[]};
+    applyStock(inv,1);S.db.products.forEach(p=>Repo.save('products',p));Repo.save('invoices',inv);m.remove();render();
+  };
+}
+function openPayment(id){
+  const inv=Repo.get('invoices',id);
+  formModal(t('pay'),[{k:'date',type:'date',def:today()},{k:'amount',type:'number',def:invRest(inv),req:1}],{},v=>{
+    inv.payments.push({date:v.date,amount:Math.min(v.amount,invRest(inv))});Repo.save('invoices',inv)});
+}
+
+/* ================= SHELL: LOGIN, LAYOUT, EVENTS (→ app.js) ================= */
+function applyLang(){document.documentElement.lang=cfg.lang;document.documentElement.dir=cfg.lang==='ar'?'rtl':'ltr'}
+function renderLogin(){
+  applyLang();
+  $('#app').innerHTML=`<div class="login"><div class="card"><h2>🏪 ${esc(cfg.shop||t('app'))}</h2>
+    <label>${t('user')}</label><input id="lu" autofocus><label>${t('pass')}</label><input id="lp" type="password">
+    <p id="le" class="t-bad"></p><div class="row"><button class="btn" id="lgo" style="flex:1">${t('enter')}</button>
+    <button class="btn sec" id="llang">${cfg.lang==='fr'?'العربية':'Français'}</button></div></div></div>`;
+  const go=()=>{const u=S.db.users.find(x=>x.name===$('#lu').value.trim()&&x.pass===hash($('#lp').value));
+    if(!u)return $('#le').textContent=t('bad');S.user=u;S.page='dashboard';render()};
+  $('#lgo').onclick=go;$('#lp').onkeydown=e=>e.key==='Enter'&&go();
+  $('#llang').onclick=()=>{cfg.lang=cfg.lang==='fr'?'ar':'fr';saveCfg();renderLogin()};
+}
+function render(){
+  if(!S.user)return renderLogin();
+  applyLang();
+  const pages=ROLE_PAGES[S.user.role];if(!pages.includes(S.page))S.page=pages[0];
+  $('#app').innerHTML=`<div class="layout"><aside class="side" id="side"><h2>🏪 ${esc(cfg.shop||t('app'))}</h2>
+    ${pages.map(p=>`<button class="nav ${p===S.page?'on':''}" data-nav="${p}">${ICONS[p]} ${t(p)}</button>`).join('')}</aside>
+    <div class="main"><div class="top"><button class="btn sec menu" id="menu">☰</button><span class="sp"></span>
+      <span>👤 ${esc(S.user.name)} · ${t(S.user.role)}</span><button class="btn sm ${S.installEvt?'':'hidden'}" id="inst">⬇️ ${t('install')}</button><button class="btn sec sm" id="tl">${cfg.lang==='fr'?'ع':'FR'}</button>
+      <button class="btn sec sm" id="out">${t('logout')}</button></div><div class="page">${Pages[S.page]()}</div></div></div>`;
+}
+function exportJson(){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(S.db,null,1)],{type:'application/json'}));a.download='backup.json';a.click()}
+function importJson(){const i=document.createElement('input');i.type='file';i.accept='.json';
+  i.onchange=async()=>{S.db=JSON.parse(await i.files[0].text());persist();render()};i.click()}
+
+document.addEventListener('click',async e=>{
+  const b=e.target.closest('button');if(!b)return;const d=b.dataset;
+  if(d.nav){S.page=d.nav;S.q='';return render()}
+  if(b.id==='inst'){S.installEvt.prompt();await S.installEvt.userChoice;S.installEvt=null;return render()}
+  if(b.id==='menu')return $('#side').classList.toggle('open');
+  if(b.id==='out'){S.user=null;return render()}
+  if(b.id==='tl'){cfg.lang=cfg.lang==='fr'?'ar':'fr';saveCfg();return render()}
+  if(d.add||d.edit){
+    const[tb,id]=(d.add?d.add+':':d.edit).split(':'),ent=tb==='users'?USER_ENTITY:ENTITIES[tb],item=id?Repo.get(tb,id):{id:uid()};
+    const form=tb==='users'?{...item,pass:''}:item; // never show the stored hash
+    return formModal(t(id?'edit':'add'),ent.fields,form,v=>{if(tb==='users')v.pass=v.pass?hash(v.pass):item.pass||hash('1234');Repo.save(tb,v)});
+  }
+  if(d.del){if(!confirm(t('sure')))return;const[tb,id]=d.del.split(':');Repo.remove(tb,id);return render()}
+  if(d.newinv)return openInvoice(d.newinv);
+  if(d.pay)return openPayment(d.pay);
+  if(d.delinv){if(!confirm(t('sure')))return;const inv=Repo.get('invoices',d.delinv);applyStock(inv,-1);
+    S.db.products.forEach(p=>Repo.save('products',p));Repo.remove('invoices',inv.id);return render()}
+  if(b.id==='addCash')return formModal(t('add'),[{k:'date',type:'date',def:today()},{k:'type',type:'select',options:()=>[['in',t('in')],['out',t('out')]]},{k:'label',req:1},{k:'amount',type:'number',req:1}],{id:uid()},v=>Repo.save('cash',v));
+    if(b.id==='sSave'){cfg.shop=$('#sShop').value;cfg.currency=$('#sCur').value;cfg.lang=$('#sLang').value;cfg.sheetUrl=$('#sUrl').value.trim();saveCfg();return render()}
+  if(b.id==='sPush'){cfg.sheetUrl=$('#sUrl').value.trim();saveCfg();try{await Sheets.push(S.db);S.sync='synced'}catch(x){S.sync='err'}return render()}
+  if(b.id==='sPull'){cfg.sheetUrl=$('#sUrl').value.trim();saveCfg();await loadDb();return render()}
+  if(b.id==='sExp')return exportJson();
+  if(b.id==='sImp')return importJson();
+  if(b.id==='sReset'&&confirm(t('sure'))){S.db=seedDb();persist();S.user=null;render()}
+});
+const USER_ENTITY={fields:[{k:'name',req:1},{k:'pass',type:'password',label:'pass',def:''},{k:'role',type:'select',options:()=>Object.keys(ROLE_PAGES).map(r=>[r,t(r)])}]};
+document.addEventListener('input',e=>{
+  if(e.target.id==='q'){S.q=e.target.value;const p=$('.page');const pos=e.target.selectionStart;render();const q=$('#q');q.focus();q.setSelectionRange(pos,pos)}
+});
+document.addEventListener('change',e=>{
+  if(e.target.id==='rMode'){S.rMode=e.target.value;render()}
+  if(e.target.id==='rVal'){S.rVal=e.target.value;render()}
+});
+
+/* ================= PWA (install + offline) ================= */
+window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();S.installEvt=e;if(S.user)render()});
+window.addEventListener('appinstalled',()=>{S.installEvt=null;if(S.user)render()});
+if('serviceWorker' in navigator&&location.protocol.startsWith('http'))navigator.serviceWorker.register('sw.js').catch(()=>{});
+
+/* ================= BOOT ================= */
+loadDb().then(render);
+</script>
+</body>
+</html>
